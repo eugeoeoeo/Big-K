@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Section, StepCard, M, TipCard, Quiz, ContinueBtn, Tableau } from '../components';
 
 export default function SectionExam({ onComplete }) {
@@ -8,11 +8,15 @@ export default function SectionExam({ onComplete }) {
 
   const addScore = () => setScore(s => s + 1);
 
+  useEffect(() => {
+    if (step >= 7 && onComplete) onComplete();
+  }, [step]);
+
   return (
     <Section
       badge="📝 Final Exam"
       title="Final Exam: Solve It Yourself!"
-      intro="Now it's YOUR turn. Solve this new problem step by step. Each step is checked — if you get it wrong, you'll learn why."
+      intro="Your turn! Solve this problem step by step. Get it right to move on — get it wrong and you'll see why."
     >
       <StepCard label="The Problem" title="Your Challenge" highlight>
         <M display>{'\\text{Maximize } P = x + 2y + 3z'}</M>
@@ -39,7 +43,7 @@ export default function SectionExam({ onComplete }) {
               '4x + 2y + 2z - S₁ = 200',
             ]}
             correctIndex={0}
-            explanation="≤ constraint → just add a slack variable S₁. The simplest case!"
+            explanation="≤ → just add S. The simplest one!"
             wrongExplanations={{
               1: "That's the rule for ≥ constraints (subtract S, add A). For ≤, you only add S.",
               2: "Artificial variables are only for ≥ and = constraints. ≤ just needs a slack variable.",
@@ -63,7 +67,7 @@ export default function SectionExam({ onComplete }) {
             '3x + 3y + S₂ + A₁ = 30',
           ]}
           correctIndex={2}
-          explanation="≥ constraint → subtract S₂ (excess) and add artificial A₁ (starter for the algorithm)."
+          explanation="≥ → subtract S (extra) and add A (starter). Two steps!"
           wrongExplanations={{
             0: "That's the rule for ≤, not ≥. For ≥, you need to subtract S and add A.",
             1: "You're missing the artificial variable A₁! For ≥, you need both −S and +A.",
@@ -86,7 +90,7 @@ export default function SectionExam({ onComplete }) {
             '-x - 2y - 3z + kA₁ = 0',
           ]}
           correctIndex={0}
-          explanation="Transpose (flip signs), add kA₁ for the artificial variable, add P, set = 0. Perfect!"
+          explanation="Move left (flip signs), add kA₁, add P, set = 0. Perfect!"
           wrongExplanations={{
             1: "When you move terms to the left side, their signs FLIP. x becomes −x, 2y becomes −2y, etc.",
             2: "The k coefficient for artificial variables should be POSITIVE, not negative. It's a penalty.",
@@ -119,7 +123,7 @@ export default function SectionExam({ onComplete }) {
               'S₁, S₂, A₁',
             ]}
             correctIndex={1}
-            explanation="S₁ is the basis for the ≤ row (slack variable), and A₁ is the basis for the ≥ row (artificial variable). That's our starting point!"
+            explanation="S₁ owns the ≤ row (the slack we added), and A₁ owns the ≥ row (the artificial we added). That's it!"
             wrongExplanations={{
               0: "x, y, z are the decision variables, not the basis. The basis consists of slack/artificial variables that start as identity columns.",
               2: "S₂ is subtracted (coefficient −1), so it doesn't form an identity column and can't be a basis variable.",

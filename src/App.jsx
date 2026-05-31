@@ -31,9 +31,10 @@ export default function App() {
     });
     if (index < SECTIONS.length - 1) {
       setActiveSection(index + 1);
+      // Wait for React to render the new section before scrolling
       setTimeout(() => {
         sectionRefs.current[index + 1]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+      }, 400);
     }
   };
 

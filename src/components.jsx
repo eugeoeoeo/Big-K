@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 
@@ -86,17 +86,16 @@ export function Tableau({ title, headers, rows, pivotCol, pivotRow, objRowIndex,
 }
 
 /* ===================== QUIZ ===================== */
-import { useState } from 'react';
-
 export function Quiz({ id, question, options, correctIndex, explanation, wrongExplanations, hint, onCorrect }) {
   const [selected, setSelected] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [solved, setSolved] = useState(false);
+  const doneRef = useRef(null);
 
   const handleSelect = (i) => {
-    if (submitted && (selected === correctIndex)) return;
+    if (solved) return;
     setSelected(i);
     setSubmitted(false);
   };
@@ -107,29 +106,41 @@ export function Quiz({ id, question, options, correctIndex, explanation, wrongEx
     setAttempts(a => a + 1);
     if (selected === correctIndex) {
       setSolved(true);
-      onCorrect && onCorrect();
+      if (onCorrect) onCorrect();
     }
   };
 
   const isCorrect = submitted && selected === correctIndex;
   const isWrong = submitted && selected !== correctIndex;
 
+  // Auto-scroll to the done message when solved
+  useEffect(() => {
+    if (solved && doneRef.current) {
+      setTimeout(() => {
+        doneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 200);
+    }
+  }, [solved]);
+
   return (
     <div className="quiz-container" id={`quiz-${id}`}>
-      <div className="quiz-badge">🧠 Quick Check</div>
+      <div className="quiz-badge">{solved ? '✅ Completed' : '🧠 Quick Check'}</div>
       <div className="quiz-question">{question}</div>
       <div className="quiz-options">
         {options.map((opt, i) => {
           let cls = 'quiz-option';
-          if (solved || (submitted && selected !== null)) {
-            if (i === correctIndex && submitted) cls += ' correct';
+          if (solved) {
+            if (i === correctIndex) cls += ' correct';
+            else cls += ' disabled';
+          } else if (submitted && selected !== null) {
+            if (i === correctIndex && isWrong && attempts >= 2) cls += ' correct';
             else if (i === selected && isWrong) cls += ' wrong';
-            else if (solved) cls += ' disabled';
+            else if (i === selected) cls += ' selected';
           } else if (i === selected) {
             cls += ' selected';
           }
           return (
-            <div key={i} className={cls} onClick={() => !solved && handleSelect(i)}>
+            <div key={i} className={cls} onClick={() => handleSelect(i)}>
               <span className="option-marker">{String.fromCharCode(65 + i)}</span>
               <span>{opt}</span>
             </div>
@@ -137,7 +148,7 @@ export function Quiz({ id, question, options, correctIndex, explanation, wrongEx
         })}
       </div>
 
-      {!solved && hint && (
+      {!solved && hint && !showHint && (
         <button className="btn btn-hint" onClick={() => setShowHint(true)} style={{ marginBottom: 12 }}>
           💡 Show Hint
         </button>
@@ -150,7 +161,7 @@ export function Quiz({ id, question, options, correctIndex, explanation, wrongEx
       )}
 
       {isCorrect && (
-        <div className="quiz-feedback correct">
+        <div className="quiz-feedback correct" ref={doneRef}>
           ✅ <strong>Correct!</strong> {explanation}
         </div>
       )}
@@ -159,7 +170,7 @@ export function Quiz({ id, question, options, correctIndex, explanation, wrongEx
         <div className="quiz-feedback wrong">
           ❌ <strong>Not quite.</strong>{' '}
           {wrongExplanations?.[selected] || explanation}
-          {attempts >= 2 && <div style={{ marginTop: 8 }}><strong>Hint:</strong> The correct answer is <strong>{String.fromCharCode(65 + correctIndex)}</strong>.</div>}
+          {attempts >= 2 && <div style={{ marginTop: 8 }}><strong>The answer is {String.fromCharCode(65 + correctIndex)}.</strong></div>}
         </div>
       )}
 
@@ -176,8 +187,18 @@ export function Quiz({ id, question, options, correctIndex, explanation, wrongEx
 
 /* ===================== CONTINUE BUTTON ===================== */
 export function ContinueBtn({ onClick, label = 'Continue →' }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    // Auto-scroll this button into view when it first appears
+    if (ref.current) {
+      setTimeout(() => {
+        ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+    }
+  }, []);
+
   return (
-    <div className="btn-group" style={{ justifyContent: 'center', marginTop: 28 }}>
+    <div className="btn-group" style={{ justifyContent: 'center', marginTop: 28 }} ref={ref}>
       <button className="btn btn-primary" onClick={onClick}>{label}</button>
     </div>
   );
