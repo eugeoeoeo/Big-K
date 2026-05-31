@@ -761,20 +761,256 @@ body::before {
   margin: 32px 0;
 }
 
-/* ======================== RESPONSIVE ======================== */
-@media (max-width: 900px) {
-  .sidebar { display: none; }
-  .main-content { margin-left: 0; }
-  .progress-bar-container { left: 0; }
-  .section { padding: 40px 20px 60px; }
-  .hero h1 { font-size: 2.2rem; }
-  .hero-features { grid-template-columns: 1fr; }
-  .tableau { font-size: 0.75rem; }
-  .tableau th, .tableau td { padding: 8px 8px; }
+/* ======================== RESPONSIVE GRIDS ======================== */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 16px 0;
 }
 
 @media (max-width: 600px) {
-  .section-title { font-size: 1.6rem; }
-  .step-card { padding: 20px; }
-  .quiz-container { padding: 20px; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+
+
+/* ======================== MOBILE MENU TOGGLE ======================== */
+.mobile-header {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-glass);
+  z-index: 200;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.mobile-header-brand {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.mobile-menu-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-menu-btn:active {
+  background: var(--accent-blue-glow);
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 149;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.sidebar-overlay.open { display: block; }
+
+.mobile-progress {
+  display: none;
+  height: 3px;
+  background: var(--bg-glass);
+  margin-top: 8px;
+}
+
+.mobile-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+/* ======================== RESPONSIVE — TABLET (≤ 900px) ======================== */
+@media (max-width: 900px) {
+  /* Show mobile header */
+  .mobile-header { display: flex; }
+
+  /* Sidebar becomes slide-out overlay */
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    z-index: 150;
+    width: 280px;
+    padding-top: 16px;
+  }
+  .sidebar.open { transform: translateX(0); }
+
+  /* Main content fills screen */
+  .main-content {
+    margin-left: 0;
+    padding-top: 56px;
+  }
+
+  /* Progress bar under mobile header */
+  .progress-bar-container {
+    left: 0;
+    top: 56px;
+  }
+
+  /* Section spacing */
+  .section { padding: 40px 24px 60px; }
+
+  /* Hero */
+  .hero { padding: 60px 24px 40px; }
+  .hero h1 { font-size: 2.2rem; letter-spacing: -1px; }
+  .hero p { font-size: 1rem; }
+  .hero-features { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .hero-feature { padding: 14px 10px; }
+  .hero-feature .feat-icon { font-size: 1.4rem; }
+  .hero-feature .feat-title { font-size: 0.8rem; }
+  .hero-feature .feat-desc { font-size: 0.7rem; }
+
+  /* Tableau */
+  .tableau { font-size: 0.78rem; }
+  .tableau th, .tableau td { padding: 8px 10px; }
+  .tableau-wrapper { margin-left: -8px; margin-right: -8px; border-radius: var(--radius-sm); }
+
+  /* Tip card */
+  .tip-card { font-size: 0.85rem; padding: 14px 16px; }
+
+  /* Quiz */
+  .quiz-option { padding: 12px 14px; font-size: 0.85rem; }
+
+  /* Summary box */
+  .summary-box { padding: 20px 22px; }
+}
+
+/* ======================== RESPONSIVE — PHONE (≤ 600px) ======================== */
+@media (max-width: 600px) {
+  /* Section */
+  .section { padding: 28px 16px 48px; }
+  .section-title { font-size: 1.45rem; letter-spacing: -0.5px; }
+  .section-intro { font-size: 0.92rem; margin-bottom: 24px; }
+  .section-badge { font-size: 0.68rem; padding: 3px 10px; }
+
+  /* Hero */
+  .hero { padding: 40px 16px 28px; }
+  .hero h1 { font-size: 1.7rem; letter-spacing: -0.5px; line-height: 1.25; }
+  .hero p { font-size: 0.9rem; margin-bottom: 24px; }
+  .hero-badge { font-size: 0.68rem; padding: 4px 12px; }
+  .hero-features { grid-template-columns: 1fr; gap: 10px; margin-top: 28px; }
+  .hero-feature { padding: 16px; display: flex; align-items: center; gap: 12px; text-align: left; }
+  .hero-feature .feat-icon { font-size: 1.5rem; margin-bottom: 0; }
+  .hero-feature .feat-title { font-size: 0.82rem; margin-bottom: 0; }
+  .hero-feature .feat-desc { font-size: 0.72rem; }
+
+  /* Step cards */
+  .step-card { padding: 18px 16px; border-radius: var(--radius-md); }
+  .step-heading { font-size: 1.1rem; }
+  .step-text { font-size: 0.88rem; }
+  .step-label { font-size: 0.65rem; }
+
+  /* Math */
+  .math-block { padding: 14px 12px; font-size: 0.95rem; }
+  .math-highlight { padding: 14px 12px; }
+  .math-arrow { gap: 10px; }
+  .math-arrow .arrow { font-size: 1.2rem; }
+
+  /* Tip card */
+  .tip-card { padding: 12px 14px; font-size: 0.82rem; gap: 10px; }
+  .tip-icon { font-size: 1.1rem; }
+
+  /* Tableau — ensure horizontal scroll works smoothly */
+  .tableau-wrapper {
+    margin-left: -16px;
+    margin-right: -16px;
+    border-radius: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tableau { font-size: 0.72rem; min-width: 500px; }
+  .tableau th, .tableau td { padding: 7px 8px; }
+  .tableau-title { font-size: 0.78rem; padding: 10px 14px; }
+
+  /* Quiz */
+  .quiz-container { padding: 16px; margin: 20px 0; border-radius: var(--radius-md); }
+  .quiz-question { font-size: 0.92rem; }
+  .quiz-option { padding: 12px 12px; font-size: 0.82rem; gap: 10px; }
+  .quiz-option .option-marker { width: 22px; height: 22px; font-size: 0.65rem; }
+  .quiz-feedback { padding: 12px 14px; font-size: 0.82rem; }
+  .quiz-badge { font-size: 0.65rem; }
+
+  /* Buttons — touch-friendly sizing */
+  .btn { padding: 12px 20px; font-size: 0.85rem; width: 100%; justify-content: center; }
+  .btn-group { flex-direction: column; }
+  .btn-hint { width: auto; }
+
+  /* Summary box */
+  .summary-box { padding: 16px 18px; border-radius: var(--radius-md); }
+  .summary-box h3 { font-size: 0.95rem; }
+  .summary-box li { font-size: 0.82rem; gap: 8px; }
+
+  /* Result card */
+  .result-card { padding: 32px 20px; }
+  .result-score { font-size: 3rem; }
+
+  /* Divider */
+  .divider { margin: 20px 0; }
+
+  /* Sidebar on phone — full-width */
+  .sidebar { width: 85vw; max-width: 300px; }
+}
+
+/* ======================== RESPONSIVE — SMALL PHONE (≤ 380px) ======================== */
+@media (max-width: 380px) {
+  .hero h1 { font-size: 1.45rem; }
+  .section-title { font-size: 1.25rem; }
+  .step-heading { font-size: 1rem; }
+  .step-card { padding: 14px 12px; }
+  .quiz-container { padding: 12px; }
+  .tableau { font-size: 0.65rem; }
+  .tableau th, .tableau td { padding: 5px 5px; }
+}
+
+/* ======================== SAFE AREA — NOTCHED PHONES ======================== */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .mobile-header {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+  .section {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+}
+
+/* ======================== LANDSCAPE PHONE ======================== */
+@media (max-height: 500px) and (orientation: landscape) {
+  .hero { padding: 30px 24px 20px; }
+  .hero h1 { font-size: 1.6rem; }
+  .mobile-header { height: 44px; }
+  .main-content { padding-top: 44px; }
+  .progress-bar-container { top: 44px; }
 }

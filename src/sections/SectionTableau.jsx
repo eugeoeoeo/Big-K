@@ -30,7 +30,7 @@ export default function SectionTableau({ onComplete }) {
           <p className="step-text">
             Let's figure out the size of our tableau:
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, margin: '16px 0' }}>
+          <div className="grid-2">
             <div className="step-card" style={{ margin: 0, padding: 20 }}>
               <div style={{ color: 'var(--accent-blue)', fontWeight: 700, marginBottom: 8 }}>📏 Rows</div>
               <p className="step-text" style={{ margin: 0 }}>

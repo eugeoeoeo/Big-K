@@ -66,7 +66,7 @@ export default function SectionIntro({ onComplete }) {
               In simpler LP problems, all constraints use <M>{'\\leq'}</M> (less than or equal).
               But real-world problems often have a <strong>mix</strong>:
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, margin: '16px 0' }}>
+            <div className="grid-3">
               <div className="step-card" style={{ margin: 0, textAlign: 'center', padding: 16 }}>
                 <div style={{ fontSize: '1.5rem', marginBottom: 8 }}>≤</div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>

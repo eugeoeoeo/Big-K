@@ -20,6 +20,7 @@ const SECTIONS = [
 export default function App() {
   const [completed, setCompleted] = useState(new Set());
   const [activeSection, setActiveSection] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
   const sectionRefs = useRef([]);
 
   const handleComplete = (index) => {
@@ -46,14 +47,26 @@ export default function App() {
   const handleNavClick = (index) => {
     if (canAccess(index)) {
       setActiveSection(index);
+      setMenuOpen(false);
       sectionRefs.current[index]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
   return (
     <div className="app-layout">
+      {/* Mobile header */}
+      <div className="mobile-header">
+        <div className="mobile-header-brand">⚡ Big K</div>
+        <button className="mobile-menu-btn" onClick={() => setMenuOpen(o => !o)} aria-label="Toggle menu">
+          {menuOpen ? '✕' : '☰'}
+        </button>
+      </div>
+
+      {/* Sidebar overlay (mobile) */}
+      <div className={`sidebar-overlay${menuOpen ? ' open' : ''}`} onClick={() => setMenuOpen(false)} />
+
       {/* Sidebar */}
-      <nav className="sidebar">
+      <nav className={`sidebar${menuOpen ? ' open' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-logo">Big K</div>
           <div className="sidebar-subtitle">LP Maximization Reviewer</div>
