@@ -1,31 +1,27 @@
 import { useState } from 'react';
-import { Section, StepCard, M, TipCard, Quiz, ContinueBtn, Tableau } from '../components';
+import { Section, StepCard, M, TipCard, Quiz, ContinueBtn, LockedContinueBtn, Tableau } from '../components';
 
 export default function SectionPivot({ onComplete }) {
   const [step, setStep] = useState(0);
   const [solved, setSolved] = useState({});
-  const allDone = solved.pv1 && solved.pv2;
+  const mark = (k) => setSolved(s => ({ ...s, [k]: true }));
+  const count = Object.keys(solved).length;
+  const total = 5;
 
   return (
-    <Section
-      badge="Steps 4–6 of 6"
-      title="Pivoting & Iteration"
-      intro="Now the main loop: find the pivot, do row operations, and repeat until we get the best answer."
-    >
-      <StepCard label="Step 4.1" title="The Pivot Loop — Overview">
-        <p className="step-text">From here, we repeat three steps in a loop:</p>
+    <Section badge="Steps 4–6 of 6" title="Pivoting & Iteration"
+      intro="Now the main loop: find the pivot, do row operations, repeat until the answer is optimal.">
+
+      <StepCard label="Step 4.1" title="The Pivot Loop">
         <div style={{ display: 'grid', gap: 12, margin: '16px 0' }}>
           <div className="step-card" style={{ margin: 0, padding: 16, borderLeft: '3px solid var(--accent-blue)' }}>
-            <strong style={{ color: 'var(--accent-blue)' }}>Step 4 — Find the pivot:</strong>{' '}
-            Pick the <strong>most negative</strong> number in the bottom row (= pivot column). Then find the <strong>smallest positive ratio</strong> (= pivot row). Where they meet = the <strong>pivot</strong>.
+            <strong style={{ color: 'var(--accent-blue)' }}>Step 4 — Find pivot:</strong> Most negative in bottom row = pivot column. Smallest positive ratio = pivot row.
           </div>
           <div className="step-card" style={{ margin: 0, padding: 16, borderLeft: '3px solid var(--accent-emerald)' }}>
-            <strong style={{ color: 'var(--accent-emerald)' }}>Step 5 — Do row operations:</strong>{' '}
-            Make the pivot = 1, and make everything else in that column = 0.
+            <strong style={{ color: 'var(--accent-emerald)' }}>Step 5 — Row operations:</strong> Make pivot = 1, everything else in that column = 0.
           </div>
           <div className="step-card" style={{ margin: 0, padding: 16, borderLeft: '3px solid var(--accent-purple)' }}>
-            <strong style={{ color: 'var(--accent-purple)' }}>Step 6 — Check:</strong>{' '}
-            Look at the bottom row. Still have negatives? → Go back to Step 4. All positive or zero? → <strong>DONE!</strong>
+            <strong style={{ color: 'var(--accent-purple)' }}>Step 6 — Check:</strong> Still negatives in bottom row? → Repeat. All ≥ 0? → <strong>DONE!</strong>
           </div>
         </div>
         {step === 0 && <ContinueBtn onClick={() => setStep(1)} />}
@@ -33,185 +29,82 @@ export default function SectionPivot({ onComplete }) {
 
       {step >= 1 && (
         <StepCard label="Step 4.2" title="Finding the Pivot Column">
-          <p className="step-text">
-            Look at the bottom row. Find the <strong>most negative number</strong> — that's your pivot column.
-          </p>
-          <Tableau
-            title="Tableau 1 — Bottom Row"
-            headers={['Basis', 'x', 'y', 'S₁', 'S₂', 'A₁', 'A₂', 'Z', 'Qty']}
-            rows={[
-              ['S₁', '2', '3', '1', '0', '0', '0', '0', '24'],
-              ['A₁', '2', '9', '0', '−1', '1', '0', '0', '36'],
-              ['A₂', '2', '1', '0', '0', '0', '1', '0', '12'],
-              ['', '−4k−50', '−10k−40', '0', 'k', '0', '0', '1', '−48k'],
-            ]}
-            pivotCol={2}
-          />
-          <p className="step-text">
-            Since k is a huge number, <M>{'-10k-40'}</M> is the most negative → <strong>y column is the pivot column!</strong> 🎯
-          </p>
-          <TipCard type="shortcut">
-            When comparing terms with k: bigger k means more negative. −10k beats −4k because 10 &gt; 4.
-          </TipCard>
+          <p className="step-text">Bottom row: find the <strong>most negative number</strong> → that's the pivot column.</p>
+          <Tableau title="Tableau 1" headers={['Basis','x','y','S₁','S₂','A₁','A₂','Z','Qty']}
+            rows={[['S₁','2','3','1','0','0','0','0','24'],['A₁','2','9','0','−1','1','0','0','36'],['A₂','2','1','0','0','0','1','0','12'],['','−4k−50','−10k−40','0','k','0','0','1','−48k']]}
+            pivotCol={2} />
+          <p className="step-text">Since k is huge, <M>{'-10k-40'}</M> is the most negative → <strong>y column!</strong></p>
+          <TipCard type="shortcut">When comparing: bigger k multiplier = more negative. −10k beats −4k.</TipCard>
           {step === 1 && <ContinueBtn onClick={() => setStep(2)} />}
         </StepCard>
       )}
 
       {step >= 2 && (
-        <StepCard label="Step 4.3" title="Finding the Pivot Row (Ratio Test)">
-          <p className="step-text">
-            Divide each row's <strong>Qty</strong> by its number in the pivot column. Pick the <strong>smallest positive</strong> result.
-          </p>
-          <Tableau
-            title="Ratio Test"
-            headers={['Basis', 'x', 'y', 'S₁', 'S₂', 'A₁', 'A₂', 'Z', 'Qty']}
-            rows={[
-              ['S₁', '2', '3', '1', '0', '0', '0', '0', '24'],
-              ['A₁', '2', '9', '0', '−1', '1', '0', '0', '36'],
-              ['A₂', '2', '1', '0', '0', '0', '1', '0', '12'],
-              ['', '−4k−50', '−10k−40', '0', 'k', '0', '0', '1', '−48k'],
-            ]}
-            pivotCol={2}
-            pivotRow={1}
-            ratios={['24÷3 = 8', '36÷9 = 4 ✓', '12÷1 = 12']}
-          />
-          <p className="step-text">
-            Ratios: 8, <strong>4</strong>, 12. Smallest is <strong>4</strong> → <strong>A₁ row is the pivot row!</strong>
-          </p>
-          <p className="step-text">
-            The <strong>pivot element</strong> = where they meet = <strong>9</strong> (y column, A₁ row).
-          </p>
-          <TipCard type="mistake">
-            Never use negative or zero numbers for the ratio test! If the pivot column has 0 or a negative, skip that row.
-          </TipCard>
+        <StepCard label="Step 4.3" title="Ratio Test → Pivot Row">
+          <p className="step-text">Divide Qty by the pivot column number. Pick <strong>smallest positive</strong>.</p>
+          <Tableau title="Ratio Test" headers={['Basis','x','y','S₁','S₂','A₁','A₂','Z','Qty']}
+            rows={[['S₁','2','3','1','0','0','0','0','24'],['A₁','2','9','0','−1','1','0','0','36'],['A₂','2','1','0','0','0','1','0','12'],['','−4k−50','−10k−40','0','k','0','0','1','−48k']]}
+            pivotCol={2} pivotRow={1} ratios={['24÷3 = 8','36÷9 = 4 ✓','12÷1 = 12']} />
+          <p className="step-text">Smallest = <strong>4</strong> → pivot row = A₁. Pivot element = <strong>9</strong>.</p>
+          <TipCard type="mistake">Skip rows where the pivot column number is 0 or negative!</TipCard>
           {step === 2 && <ContinueBtn onClick={() => setStep(3)} />}
         </StepCard>
       )}
 
       {step >= 3 && (
-        <StepCard label="Step 4.4" title="Doing the Row Operations">
-          <p className="step-text">
-            <strong>Goal:</strong> Make the pivot (9) become <strong>1</strong>, and everything else in the y column become <strong>0</strong>.
-          </p>
-          <p className="step-text"><strong>First:</strong> Divide the pivot row by 9 (so 9 becomes 1).</p>
-          <p className="step-text"><strong>Then:</strong> Use that new row to zero out y in the other rows:</p>
-          <ul style={{ listStyle: 'none', marginBottom: 16 }}>
-            <li style={{ padding: '4px 0', color: 'var(--text-secondary)' }}>• R₁ − 3 × (new R₂) → makes y = 0 in Row 1</li>
-            <li style={{ padding: '4px 0', color: 'var(--text-secondary)' }}>• R₃ − 1 × (new R₂) → makes y = 0 in Row 3</li>
-            <li style={{ padding: '4px 0', color: 'var(--text-secondary)' }}>• R₄ + (10k+40) × (new R₂) → makes y = 0 in bottom row</li>
-          </ul>
-          <TipCard type="tip">
-            The multiplier = <strong>negative of that row's number in the pivot column</strong>. Row 1 has 3 → use −3 × new pivot row.
-          </TipCard>
+        <StepCard label="Step 4.4" title="Row Operations">
+          <p className="step-text"><strong>1)</strong> Divide pivot row by 9 (makes pivot = 1).<br/>
+            <strong>2)</strong> Use new row to zero out y in other rows.</p>
+          <TipCard type="tip">Multiplier = negative of that row's number in the pivot column.</TipCard>
           {step === 3 && <ContinueBtn onClick={() => setStep(4)} />}
         </StepCard>
       )}
 
       {step >= 4 && (
-        <StepCard label="Step 4.5" title="Tableau 2 — After First Pivot">
-          <p className="step-text">After the row operations, A₁ leaves the basis and <strong>y takes its place</strong>!</p>
-          <Tableau
-            title="Tableau 2"
-            headers={['Basis', 'x', 'y', 'S₁', 'S₂', 'A₁', 'A₂', 'Z', 'Qty']}
-            rows={[
-              ['S₁', '4/3', '0', '1', '1/3', '−1/3', '0', '0', '12'],
-              ['y', '2/9', '1', '0', '−1/9', '1/9', '0', '0', '4'],
-              ['A₂', '16/9', '0', '0', '1/9', '−1/9', '1', '0', '8'],
-              ['', '(−16k−370)/9', '0', '0', '(−k−40)/9', '(10k+40)/9', '0', '1', '−8k+160'],
-            ]}
-          />
-          <p className="step-text">
-            <strong>Check the bottom row:</strong> Still has negatives → <strong>not done yet!</strong> Back to Step 4.
+        <StepCard label="Step 4.5" title="After Pivots → Final Tableau">
+          <p className="step-text">After 3 rounds of pivoting:</p>
+          <Tableau title="Tableau 4 — FINAL" headers={['Basis','x','y','S₁','S₂','A₁','A₂','Z','Qty']}
+            rows={[['S₁','0','0','4','1','−1','−3','0','24'],['y','0','1','1/2','0','0','−1/2','0','6'],['x','1','0','−1/4','0','0','3/4','0','3'],['','0','0','15/2','0','k','(2k+35)/4','1','390']]} />
+          <p className="step-text" style={{ color: 'var(--accent-emerald)', fontWeight: 600 }}>
+            🎯 Bottom row: all ≥ 0 → OPTIMAL! We're done!
           </p>
           {step === 4 && <ContinueBtn onClick={() => setStep(5)} />}
         </StepCard>
       )}
 
       {step >= 5 && (
-        <StepCard label="Step 4.6" title="Second Pivot">
-          <p className="step-text">Most negative = <M>{'\\frac{-16k-370}{9}'}</M> → pivot column = <strong>x</strong>.</p>
-          <p className="step-text">Ratios: 12÷(4/3) = 9, &nbsp; 4÷(2/9) = 18, &nbsp; 8÷(16/9) = <strong>4.5</strong> ✓ → pivot row = A₂.</p>
-          <p className="step-text">After row operations:</p>
-          <Tableau
-            title="Tableau 3"
-            headers={['Basis', 'x', 'y', 'S₁', 'S₂', 'A₁', 'A₂', 'Z', 'Qty']}
-            rows={[
-              ['S₁', '0', '0', '1', '1/4', '−1/4', '−3/4', '0', '6'],
-              ['y', '0', '1', '0', '−1/8', '1/8', '−1/8', '0', '3'],
-              ['x', '1', '0', '0', '1/16', '−1/16', '9/16', '0', '9/2'],
-              ['', '0', '0', '0', '−15/8', '(8k+15)/8', '(8k+185)/8', '1', '345'],
-            ]}
-          />
-          <p className="step-text"><strong>Check:</strong> −15/8 under S₂ is still negative. One more round!</p>
-          {step === 5 && <ContinueBtn onClick={() => setStep(6)} />}
-        </StepCard>
-      )}
-
-      {step >= 6 && (
-        <StepCard label="Step 4.7" title="Third Pivot — Final Round!">
-          <p className="step-text">Pivot column = S₂ (−15/8 is the only negative).</p>
-          <p className="step-text">Ratios: 6÷(1/4) = <strong>24</strong> ✓, &nbsp; 3÷(−1/8) = skip (negative!), &nbsp; (9/2)÷(1/16) = 72.</p>
-          <p className="step-text">After row operations:</p>
-          <Tableau
-            title="Tableau 4 — FINAL"
-            headers={['Basis', 'x', 'y', 'S₁', 'S₂', 'A₁', 'A₂', 'Z', 'Qty']}
-            rows={[
-              ['S₁', '0', '0', '4', '1', '−1', '−3', '0', '24'],
-              ['y', '0', '1', '1/2', '0', '0', '−1/2', '0', '6'],
-              ['x', '1', '0', '−1/4', '0', '0', '3/4', '0', '3'],
-              ['', '0', '0', '15/2', '0', 'k', '(2k+35)/4', '1', '390'],
-            ]}
-          />
-          {step === 6 && <ContinueBtn onClick={() => setStep(7)} />}
-        </StepCard>
-      )}
-
-      {step >= 7 && (
-        <StepCard label="Step 4.8" title="Done! ✅" highlight>
-          <p className="step-text">
-            Bottom row: <strong>0, 0, 15/2, 0, k, (2k+35)/4, 1</strong> — all positive or zero!
-          </p>
-          <p className="step-text" style={{ fontSize: '1.1rem', color: 'var(--accent-emerald)', fontWeight: 600 }}>
-            🎯 We've reached the OPTIMAL SOLUTION!
-          </p>
-          <TipCard type="remember">
-            <strong>When to stop:</strong> All numbers in the bottom row are ≥ 0 (ignore Qty). That means we can't do any better — we're at the maximum!
-          </TipCard>
-          {step === 7 && <ContinueBtn onClick={() => setStep(8)} />}
-        </StepCard>
-      )}
-
-      {step >= 8 && (
         <>
-          <Quiz
-            id="pv1"
-            question="How do you find the pivot column?"
-            options={['Pick the biggest number in the bottom row', 'Pick the most negative number in the bottom row', 'Pick the first non-zero column', 'Pick the column with the smallest ratio']}
-            correctIndex={1}
-            explanation="The most negative number shows where we can improve the most — that's our pivot column."
-            wrongExplanations={{0: "We want the MOST NEGATIVE, not the biggest.", 2: "Non-zero isn't what we're looking for — it's the most negative.", 3: "Ratios are for finding the pivot ROW, not column."}}
-            hint="Which number shows the most room for improvement?"
-            onCorrect={() => setSolved(s => ({...s, pv1: true}))}
-          />
-          <Quiz
-            id="pv2"
-            question="If a number in the pivot column is negative or zero, what do you do during the ratio test?"
-            options={['Use it anyway', 'Take the absolute value', 'Skip that row entirely', 'Set the ratio to infinity']}
-            correctIndex={2}
-            explanation="Only use positive numbers for the ratio test. Negative or zero? Just skip that row."
-            wrongExplanations={{0: "Negative entries give wrong ratios that could break the solution.", 1: "Taking absolute values changes the math — just skip it.", 3: "The proper way is simply to skip that row."}}
-            hint="Can you divide by zero or get a meaningful negative ratio?"
-            onCorrect={() => setSolved(s => ({...s, pv2: true}))}
-          />
-          {allDone && (
-            <div style={{ textAlign: 'center', marginTop: 24 }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: 8 }}>🎉</div>
-              <p className="step-text" style={{ textAlign: 'center' }}>
-                <strong>You've mastered pivoting!</strong> Let's read the final answer.
-              </p>
-              <ContinueBtn onClick={onComplete} label="Read the Solution →" />
-            </div>
-          )}
+          <Quiz id="p1" question="How do you find the pivot COLUMN?"
+            options={['Biggest number in bottom row','Most negative number in bottom row','First non-zero column','Smallest ratio']}
+            correctIndex={1} explanation="Most negative = most room for improvement = pivot column."
+            wrongExplanations={{0:"We want MOST NEGATIVE, not biggest.",2:"Not just any non-zero — the most negative.",3:"Ratios are for finding the pivot ROW."}}
+            hint="Which direction gives the most improvement?" onCorrect={() => mark('p1')} />
+
+          <Quiz id="p2" question="How do you find the pivot ROW?"
+            options={['Most negative ratio','Biggest ratio','Smallest POSITIVE ratio','Any row works']}
+            correctIndex={2} explanation="Divide Qty by pivot column number, pick the smallest positive result."
+            wrongExplanations={{0:"Negative ratios are skipped entirely!",1:"We want SMALLEST, not biggest.",3:"Only one specific row works — the smallest positive ratio."}}
+            hint="Qty ÷ pivot column number = ?" onCorrect={() => mark('p2')} />
+
+          <Quiz id="p3" question="If a number in the pivot column is 0 or negative, what do you do in the ratio test?"
+            options={['Use it anyway','Take absolute value','Skip that row','Set ratio to infinity']}
+            correctIndex={2} explanation="Skip it. Only positive numbers give valid ratios."
+            wrongExplanations={{0:"That gives invalid ratios.",1:"Changing values changes the math.",3:"Just skip it entirely."}}
+            hint="Can you divide by zero?" onCorrect={() => mark('p3')} />
+
+          <Quiz id="p4" question="What does the pivot element become after row operations?"
+            options={['0','The original value','1','k']}
+            correctIndex={2} explanation="We divide the pivot row by the pivot element, making it 1."
+            wrongExplanations={{0:"0 is what the OTHER entries in that column become.",1:"We change it to 1 by dividing.",3:"k has nothing to do with this step."}}
+            hint="We divide the pivot row by the pivot element..." onCorrect={() => mark('p4')} />
+
+          <Quiz id="p5" question="When do you STOP pivoting?"
+            options={['After exactly 3 pivots','When all bottom row numbers are ≥ 0','When all variables are in the basis','When k disappears completely']}
+            correctIndex={1} explanation="All non-negative in the bottom row = optimal! No more improvement possible."
+            wrongExplanations={{0:"The number of pivots varies per problem.",2:"Not all variables need to be in the basis.",3:"k might still appear — we just need all values ≥ 0."}}
+            hint="What does a negative in the bottom row mean?" onCorrect={() => mark('p5')} />
+
+          <LockedContinueBtn onClick={onComplete} label="Read the Solution →" solvedCount={count} totalCount={total} />
         </>
       )}
     </Section>

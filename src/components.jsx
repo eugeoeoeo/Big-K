@@ -204,6 +204,33 @@ export function ContinueBtn({ onClick, label = 'Continue →' }) {
   );
 }
 
+/* ===================== LOCKED CONTINUE BUTTON ===================== */
+export function LockedContinueBtn({ onClick, label = 'Next Lesson →', solvedCount, totalCount }) {
+  const locked = solvedCount < totalCount;
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!locked && ref.current) {
+      setTimeout(() => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
+    }
+  }, [locked]);
+
+  return (
+    <div style={{ textAlign: 'center', marginTop: 32, padding: '24px 0', borderTop: '1px solid var(--border-glass)' }} ref={ref}>
+      <div style={{ fontSize: '0.85rem', color: locked ? 'var(--text-muted)' : 'var(--accent-emerald)', marginBottom: 12, fontWeight: 600 }}>
+        {locked ? `🔒 ${solvedCount} / ${totalCount} activities completed` : '✅ All activities completed!'}
+      </div>
+      <button
+        className={`btn ${locked ? 'btn-secondary' : 'btn-success'}`}
+        onClick={locked ? undefined : onClick}
+        disabled={locked}
+        style={{ minWidth: 200 }}
+      >
+        {locked ? '🔒 ' : '🎉 '}{label}
+      </button>
+    </div>
+  );
+}
+
 /* ===================== SECTION WRAPPER ===================== */
 export function Section({ badge, title, intro, children }) {
   return (
