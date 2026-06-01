@@ -5,6 +5,7 @@ import { Section, StepCard, M, TipCard, Quiz, ContinueBtn, LockedContinueBtn, Ta
 // Premium Visual Pivot Teacher Component
 function SimplexPivotTeacher({ config }) {
   const [activeStep, setActiveStep] = useState(0);
+  const [hoveredCol, setHoveredCol] = useState(null);
 
   const stepData = config.steps[activeStep];
   const totalSteps = config.steps.length;
@@ -62,6 +63,7 @@ function SimplexPivotTeacher({ config }) {
               key={idx}
               onClick={() => {
                 setActiveStep(idx);
+                setHoveredCol(null);
               }}
               style={{
                 background: isActive ? 'var(--accent-blue)' : 'var(--bg-glass)',
@@ -94,7 +96,7 @@ function SimplexPivotTeacher({ config }) {
           {stepData.title}
         </h4>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
           <div>
             <strong style={{ color: 'var(--accent-cyan)', fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 4 }}>💡 What are we doing here?</strong>
             <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
@@ -119,14 +121,49 @@ function SimplexPivotTeacher({ config }) {
 
       {/* DYNAMIC LIVE TABLEAU */}
       <div style={{ marginBottom: 20 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            📊 Live Simplex Tableau (Updates row-by-row)
-          </span>
+        {/* COMPACT CELL EXPLANATION HUD */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          minHeight: '44px',
+          marginBottom: 12,
+          background: hoveredCol && stepData.colCalcs && stepData.colCalcs[hoveredCol] ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+          border: '1px solid ' + (hoveredCol && stepData.colCalcs && stepData.colCalcs[hoveredCol] ? 'var(--accent-emerald)' : 'var(--border-glass)'),
+          borderRadius: '8px',
+          padding: '8px 16px',
+          transition: 'all 0.2s ease',
+          boxShadow: hoveredCol && stepData.colCalcs && stepData.colCalcs[hoveredCol] ? '0 0 8px rgba(16, 185, 129, 0.15)' : 'none'
+        }}>
+          {hoveredCol && stepData.colCalcs && stepData.colCalcs[hoveredCol] ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '0.82rem', alignItems: 'center', width: '100%' }}>
+              <span style={{ fontWeight: 800, color: 'var(--accent-emerald)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                Col {config.headers[hoveredCol]}:
+              </span>
+              <strong style={{ fontFamily: 'monospace', fontSize: '0.88rem', color: 'var(--text-primary)' }}>
+                {stepData.colCalcs[hoveredCol].math}
+              </strong>
+              <strong style={{ color: 'var(--accent-emerald)', fontSize: '0.92rem' }}>
+                = {stepData.colCalcs[hoveredCol].res}
+              </strong>
+              <span style={{ color: 'var(--text-muted)', margin: '0 4px' }}>|</span>
+              <span style={{ color: 'var(--text-secondary)' }}>
+                {stepData.colCalcs[hoveredCol].why}
+              </span>
+            </div>
+          ) : (
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span>💡</span>
+              <span>
+                {stepData.updatedRowIndex !== null 
+                  ? 'Hover over any cell in the highlighted active row to see its complete step-by-step formula instantly!'
+                  : 'Live Tableau State (All calculations finalized for this pivot stage).'}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="tableau-wrapper">
-
           <table className="tableau">
             <thead>
               <tr>
@@ -156,8 +193,9 @@ function SimplexPivotTeacher({ config }) {
                   }}>
                     {row.map((cell, ci) => {
                       const isPivotCell = ri === config.pivotRow && ci === config.pivotCol;
+                      const isHovered = isActiveRow && ci === hoveredCol;
 
-                      let cellStyle = { transition: 'all 0.15s ease' };
+                      let cellStyle = { cursor: isActiveRow && ci > 0 ? 'pointer' : 'default', transition: 'all 0.15s ease' };
                       if (isPivotCell) {
                         cellStyle = {
                           ...cellStyle,
@@ -170,11 +208,22 @@ function SimplexPivotTeacher({ config }) {
                         cellStyle = { ...cellStyle, background: 'rgba(56, 189, 248, 0.06)' };
                       }
 
+                      if (isHovered) {
+                        cellStyle = {
+                          ...cellStyle,
+                          background: 'rgba(16, 185, 129, 0.2)',
+                          color: 'var(--accent-emerald)',
+                          fontWeight: 'bold'
+                        };
+                      }
+
                       return (
                         <td
                           key={ci}
                           style={cellStyle}
                           className={ci === 0 ? 'basis-cell' : ''}
+                          onMouseEnter={() => isActiveRow && ci > 0 && setHoveredCol(ci)}
+                          onMouseLeave={() => setHoveredCol(null)}
                         >
                           {cell}
                         </td>
@@ -188,12 +237,14 @@ function SimplexPivotTeacher({ config }) {
         </div>
       </div>
 
+
       {/* Stepper Navigation Buttons */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px', borderTop: '1px solid var(--border-glass)', paddingTop: '16px' }}>
         <button
           className="btn btn-secondary"
           onClick={() => {
             setActiveStep(prev => Math.max(0, prev - 1));
+            setHoveredCol(null);
           }}
           disabled={activeStep === 0}
           style={{ fontSize: '0.8rem', padding: '6px 12px' }}
@@ -209,6 +260,7 @@ function SimplexPivotTeacher({ config }) {
           className="btn btn-primary"
           onClick={() => {
             setActiveStep(prev => Math.min(totalSteps - 1, prev + 1));
+            setHoveredCol(null);
           }}
           disabled={activeStep === totalSteps - 1}
           style={{ fontSize: '0.8rem', padding: '6px 12px' }}
@@ -245,45 +297,81 @@ export default function SectionPivot({ onComplete }) {
       {
         label: 'Goal',
         title: '🎯 The Goal of Pivot #1',
-        why: 'In a valid Simplex Tableau, the column of a Basis variable must have a 1 at its active row and 0 everywhere else. Since "y" is entering the Basis replacing A₁ at Row 2, we must turn the entire "y" column from [3, 9, 1, −10k−40] into [0, 1, 0, 0].',
-        how: 'We do this in 4 systematic row operations: first divide Row 2 (A₁) by 9 to turn the pivot element itself into 1. Then, subtract multiples of this new pivot row from S₁, A₂, and the Objective row to turn all their other y coefficients into 0.',
+        why: 'In a valid Simplex Tableau, the column of a Basis variable must have a 1 at its active row and 0 everywhere else. Since "y" is entering the Basis replacing A₁, we must turn the "y" column from [3, 9, 1, −10k−40] into [0, 1, 0, 0].',
+        how: 'We will do this in 4 row operations: first divide Row 2 (A₁) by 9 to turn the pivot element into a 1. Then, subtract multiples of this row from S₁, A₂, and the Objective row to turn their y coefficients into 0.',
         updatedRowIndex: null
       },
       {
         label: 'Make Pivot = 1',
         title: '1️⃣ Make New Pivot Row (y replaces A₁)',
-        why: 'The pivot element at Row 2, Column y is 9. To turn this pivot element into our target 1, we divide every cell in this row by 9.',
-        how: 'Divide every number in Row 2 by 9. The basis variable changes from A₁ to y.',
+        why: 'The pivot element at Row 2, Column y is 9. To turn it into 1, we divide every cell in this row by 9.',
+        how: 'Take the old Row 2 and divide it by 9. The Basis changes from A₁ to y.',
         formula: 'New Row 2 = Old Row 2 ÷ 9',
         updatedRowIndex: 1,
-        newRowValues: ['y','2/9','1','0','−1/9','1/9','0','0','4']
+        newRowValues: ['y','2/9','1','0','−1/9','1/9','0','0','4'],
+        colCalcs: {
+          1: { why: 'We divide the old x coefficient (2) by 9.', math: '2 ÷ 9', res: '2/9' },
+          2: { why: 'We divide the pivot element (9) by 9 to get 1.', math: '9 ÷ 9', res: '1' },
+          3: { why: 'We divide the old S₁ coefficient (0) by 9.', math: '0 ÷ 9', res: '0' },
+          4: { why: 'We divide the old S₂ coefficient (−1) by 9.', math: '−1 ÷ 9', res: '−1/9' },
+          5: { why: 'We divide the old A₁ coefficient (1) by 9.', math: '1 ÷ 9', res: '1/9' },
+          6: { why: 'We divide the old A₂ coefficient (0) by 9.', math: '0 ÷ 9', res: '0' },
+          8: { why: 'We divide the old quantity (36) by 9.', math: '36 ÷ 9', res: '4' }
+        }
       },
       {
         label: 'Zero-out Row S₁',
         title: '2️⃣ Zero-out S₁ Row (Row 1)',
-        why: 'Old Row 1 (S₁) currently has a coefficient of 3 in the y column. To turn it into 0, we must subtract exactly 3 times our new pivot row (which has a 1 in the y position).',
-        how: 'We look at the y entry in S₁, which is 3. To cancel it out using the new pivot row\'s 1, our multiplier must be 3 (since 3 − 3 × 1 = 0). We subtract 3 times the new y Row from every column of Old S₁.',
+        why: 'Old Row 1 (S₁) has a 3 in the y column. To turn it into 0, we subtract 3 times our new pivot row.',
+        how: 'We want 3 − X × 1 = 0, so X must be 3. We subtract 3 × (New y Row) from every column of old S₁.',
         formula: 'New S₁ Row = Old S₁ Row − 3 × (New y Row)',
         updatedRowIndex: 0,
-        newRowValues: ['S₁','4/3','0','1','1/3','−1/3','0','0','12']
+        newRowValues: ['S₁','4/3','0','1','1/3','−1/3','0','0','12'],
+        colCalcs: {
+          1: { why: 'Old x (2) minus 3 times New x (2/9).', math: '2 − 3 × (2/9) = 2 − 2/3', res: '4/3' },
+          2: { why: 'Old y (3) minus 3 times New y (1) cancels out to 0.', math: '3 − 3 × (1)', res: '0' },
+          3: { why: 'Old S₁ (1) minus 3 times New S₁ (0).', math: '1 − 3 × (0)', res: '1' },
+          4: { why: 'Old S₂ (0) minus 3 times New S₂ (−1/9).', math: '0 − 3 × (−1/9)', res: '1/3' },
+          5: { why: 'Old A₁ (0) minus 3 times New A₁ (1/9).', math: '0 − 3 × (1/9)', res: '−1/3' },
+          6: { why: 'Old A₂ (0) minus 3 times New A₂ (0).', math: '0 − 3 × (0)', res: '0' },
+          8: { why: 'Old Qty (24) minus 3 times New Qty (4).', math: '24 − 3 × (4)', res: '12' }
+        }
       },
       {
         label: 'Zero-out Row A₂',
         title: '3️⃣ Zero-out A₂ Row (Row 3)',
-        why: 'Old Row 3 (A₂) currently has a coefficient of 1 in the y column. To turn it into 0, we must subtract exactly 1 times our new pivot row (which has a 1 in the y position).',
-        how: 'We look at the y entry in A₂, which is 1. To cancel it out using the new pivot row\'s 1, our multiplier is 1 (since 1 − 1 × 1 = 0). We subtract 1 times the new y Row from every column of Old A₂.',
+        why: 'Old Row 3 (A₂) has a 1 in the y column. We must turn it into 0.',
+        how: 'Since it is already 1, we simply subtract 1 times the new pivot row: 1 − 1 = 0.',
         formula: 'New A₂ Row = Old A₂ Row − 1 × (New y Row)',
         updatedRowIndex: 2,
-        newRowValues: ['A₂','16/9','0','0','1/9','−1/9','1','0','8']
+        newRowValues: ['A₂','16/9','0','0','1/9','−1/9','1','0','8'],
+        colCalcs: {
+          1: { why: 'Old x (2) minus New x (2/9).', math: '2 − 2/9', res: '16/9' },
+          2: { why: 'Old y (1) minus New y (1) cancels out.', math: '1 − 1', res: '0' },
+          3: { why: 'Old S₁ (0) minus New S₁ (0).', math: '0 − 0', res: '0' },
+          4: { why: 'Old S₂ (0) minus New S₂ (−1/9).', math: '0 − (−1/9)', res: '1/9' },
+          5: { why: 'Old A₁ (0) minus New A₁ (1/9).', math: '0 − 1/9', res: '−1/9' },
+          6: { why: 'Old A₂ (1) minus New A₂ (0).', math: '1 − 0', res: '1' },
+          8: { why: 'Old Qty (12) minus New Qty (4).', math: '12 − 4', res: '8' }
+        }
       },
       {
         label: 'Zero-out Obj',
         title: '4️⃣ Zero-out Objective Row',
-        why: 'The bottom objective row currently has a coefficient of −10k−40 in the y column. To cancel this negative coefficient and turn it into 0, we must add exactly (10k+40) times our new pivot row.',
-        how: 'We look at the y entry in the bottom row, which is −10k−40. To cancel it out using the new pivot row\'s 1, we must add the exact opposite value, which is (10k+40) (since (−10k−40) + (10k+40) × 1 = 0). We add (10k+40) times the new y Row to the bottom row.',
+        why: 'The bottom row has −10k−40 in the y column. We must turn it into a 0.',
+        how: 'To cancel out this negative term, we add (10k+40) times our new pivot row.',
         formula: 'New Obj = Old Obj + (10k+40) × (New y Row)',
         updatedRowIndex: 3,
-        newRowValues: ['','(−16k−370)/9','0','0','(−k−40)/9','(10k+40)/9','0','1','−8k+160']
+        newRowValues: ['','(−16k−370)/9','0','0','(−k−40)/9','(10k+40)/9','0','1','−8k+160'],
+        colCalcs: {
+          1: { why: 'Old x (−4k−50) plus (10k+40) times New x (2/9).', math: '(−4k−50) + (10k+40)(2/9)', res: '(−16k−370)/9' },
+          2: { why: 'Old y (−10k−40) plus (10k+40) times New y (1) cancels to 0.', math: '(−10k−40) + (10k+40)(1)', res: '0' },
+          3: { why: 'Old S₁ (0) plus (10k+40) times New S₁ (0).', math: '0 + 0', res: '0' },
+          4: { why: 'Old S₂ (k) plus (10k+40) times New S₂ (−1/9).', math: 'k + (10k+40)(−1/9)', res: '(−k−40)/9' },
+          5: { why: 'Old A₁ (0) plus (10k+40) times New A₁ (1/9).', math: '0 + (10k+40)(1/9)', res: '(10k+40)/9' },
+          6: { why: 'Old A₂ (0) plus (10k+40) times New A₂ (0).', math: '0 + 0', res: '0' },
+          8: { why: 'Old Qty (−48k) plus (10k+40) times New Qty (4).', math: '−48k + (10k+40)(4)', res: '−8k+160' }
+        }
       }
     ]
   };
@@ -305,45 +393,81 @@ export default function SectionPivot({ onComplete }) {
       {
         label: 'Goal',
         title: '🎯 The Goal of Pivot #2',
-        why: 'Column "x" is entering the Basis replacing A₂ at Row 3. We must turn the x column coefficients from [4/3, 2/9, 16/9, (−16k−370)/9] into [0, 0, 1, 0].',
-        how: 'We do this in 4 row operations: first multiply Row 3 (A₂) by 9/16 to turn the pivot element (16/9) into 1. Then, subtract/add multiples of this new pivot row from S₁, y, and the Objective row to turn all their other x coefficients into 0.',
+        why: 'Column "x" is entering the Basis replacing A₂. We must turn the x column from [4/3, 2/9, 16/9, (−16k−370)/9] into [0, 0, 1, 0].',
+        how: 'To do this: Multiply Row 3 by 9/16 to turn the pivot element into a 1. Then, subtract multiples of this row from S₁, y, and the Objective row to turn their x values into 0.',
         updatedRowIndex: null
       },
       {
         label: 'Make Pivot = 1',
         title: '1️⃣ Make New Pivot Row (x replaces A₂)',
-        why: 'The pivot element at Row 3, Column x is 16/9. To turn this pivot element into our target 1, we multiply the entire row by its reciprocal, which is 9/16.',
-        how: 'Multiply every value in Row 3 by 9/16. The basis variable changes from A₂ to x.',
+        why: 'The pivot element is 16/9. To turn it into 1, we multiply the entire Row 3 by 9/16.',
+        how: 'Take old Row 3 and multiply every element by 9/16. The Basis changes from A₂ to x.',
         formula: 'New Row 3 = Old Row 3 × (9/16)',
         updatedRowIndex: 2,
-        newRowValues: ['x','1','0','0','1/16','−1/16','9/16','0','9/2']
+        newRowValues: ['x','1','0','0','1/16','−1/16','9/16','0','9/2'],
+        colCalcs: {
+          1: { why: 'We multiply the old x (16/9) by 9/16 to get 1.', math: '16/9 × 9/16', res: '1' },
+          2: { why: 'Old y (0) multiplied by 9/16.', math: '0 × 9/16', res: '0' },
+          3: { why: 'Old S₁ (0) multiplied by 9/16.', math: '0 × 9/16', res: '0' },
+          4: { why: 'Old S₂ (1/9) multiplied by 9/16.', math: '1/9 × 9/16', res: '1/16' },
+          5: { why: 'Old A₁ (−1/9) multiplied by 9/16.', math: '−1/9 × 9/16', res: '−1/16' },
+          6: { why: 'Old A₂ (1) multiplied by 9/16.', math: '1 × 9/16', res: '9/16' },
+          8: { why: 'Old Qty (8) multiplied by 9/16.', math: '8 × 9/16', res: '9/2' }
+        }
       },
       {
         label: 'Zero-out Row S₁',
         title: '2️⃣ Zero-out S₁ Row (Row 1)',
-        why: 'Old Row 1 (S₁) currently has a coefficient of 4/3 in the x column. To turn it into 0, we must subtract exactly 4/3 times our new pivot row (which has a 1 in the x position).',
-        how: 'We look at the x entry in S₁, which is 4/3. To cancel it out using the new pivot row\'s 1, our multiplier must be 4/3 (since 4/3 − 4/3 × 1 = 0). We subtract 4/3 times the new x Row from every column of Old S₁.',
+        why: 'Old Row 1 (S₁) has a 4/3 in the x column. We must turn it into 0.',
+        how: 'We subtract 4/3 times our new pivot row: 4/3 − 4/3 × 1 = 0.',
         formula: 'New S₁ Row = Old S₁ Row − (4/3) × (New x Row)',
         updatedRowIndex: 0,
-        newRowValues: ['S₁','0','0','1','1/4','−1/4','−3/4','0','6']
+        newRowValues: ['S₁','0','0','1','1/4','−1/4','−3/4','0','6'],
+        colCalcs: {
+          1: { why: 'Old x (4/3) minus 4/3 times New x (1) cancels to 0.', math: '4/3 − 4/3(1)', res: '0' },
+          2: { why: 'Old y (0) minus 4/3 times New y (0).', math: '0 − 0', res: '0' },
+          3: { why: 'Old S₁ (1) minus 4/3 times New S₁ (0).', math: '1 − 0', res: '1' },
+          4: { why: 'Old S₂ (1/3) minus 4/3 times New S₂ (1/16).', math: '1/3 − (4/3)(1/16)', res: '1/4' },
+          5: { why: 'Old A₁ (−1/3) minus 4/3 times New A₁ (−1/16).', math: '−1/3 − (4/3)(−1/16)', res: '−1/4' },
+          6: { why: 'Old A₂ (0) minus 4/3 times New A₂ (9/16).', math: '0 − (4/3)(9/16)', res: '−3/4' },
+          8: { why: 'Old Qty (12) minus 4/3 times New Qty (9/2).', math: '12 − (4/3)(9/2)', res: '6' }
+        }
       },
       {
         label: 'Zero-out Row y',
         title: '3️⃣ Zero-out y Row (Row 2)',
-        why: 'Old Row 2 (y) currently has a coefficient of 2/9 in the x column. To turn it into 0, we must subtract exactly 2/9 times our new pivot row (which has a 1 in the x position).',
-        how: 'We look at the x entry in y, which is 2/9. To cancel it out using the new pivot row\'s 1, our multiplier must be 2/9 (since 2/9 − 2/9 × 1 = 0). We subtract 2/9 times the new x Row from every column of Old y.',
+        why: 'Old Row 2 (y) has a 2/9 in the x column. We must turn it into 0.',
+        how: 'We subtract 2/9 times our new pivot row: 2/9 − 2/9 × 1 = 0.',
         formula: 'New y Row = Old y Row − (2/9) × (New x Row)',
         updatedRowIndex: 1,
-        newRowValues: ['y','0','1','0','−1/8','1/8','−1/8','0','3']
+        newRowValues: ['y','0','1','0','−1/8','1/8','−1/8','0','3'],
+        colCalcs: {
+          1: { why: 'Old x (2/9) minus 2/9 times New x (1) cancels to 0.', math: '2/9 − 2/9(1)', res: '0' },
+          2: { why: 'Old y (1) minus 2/9 times New y (0).', math: '1 − 0', res: '1' },
+          3: { why: 'Old S₁ (0) minus 2/9 times New S₁ (0).', math: '0 − 0', res: '0' },
+          4: { why: 'Old S₂ (−1/9) minus 2/9 times New S₂ (1/16).', math: '−1/9 − (2/9)(1/16)', res: '−1/8' },
+          5: { why: 'Old A₁ (1/9) minus 2/9 times New A₁ (−1/16).', math: '1/9 − (2/9)(−1/16)', res: '1/8' },
+          6: { why: 'Old A₂ (0) minus 2/9 times New A₂ (9/16).', math: '0 − (2/9)(9/16)', res: '−1/8' },
+          8: { why: 'Old Qty (4) minus 2/9 times New Qty (9/2).', math: '4 − (2/9)(9/2)', res: '3' }
+        }
       },
       {
         label: 'Zero-out Obj',
         title: '4️⃣ Zero-out Objective Row',
-        why: 'The bottom objective row currently has a coefficient of (−16k−370)/9 in the x column. To cancel this negative coefficient and turn it into 0, we must add exactly (16k+370)/9 times our new pivot row.',
-        how: 'We look at the x entry in the bottom row, which is (−16k−370)/9. To cancel it out using the new pivot row\'s 1, we must add the exact opposite value, which is (16k+370)/9 (since (−16k−370)/9 + (16k+370)/9 × 1 = 0). We add (16k+370)/9 times the new x Row to the bottom row.',
+        why: 'The bottom row has (−16k−370)/9 in the x column. We must turn it into a 0.',
+        how: 'To cancel out this negative term, we add (16k+370)/9 times our new pivot row.',
         formula: 'New Obj = Old Obj + ((16k+370)/9) × (New x Row)',
         updatedRowIndex: 3,
-        newRowValues: ['','0','0','0','−15/8','(8k+15)/8','(8k+185)/8','1','345']
+        newRowValues: ['','0','0','0','−15/8','(8k+15)/8','(8k+185)/8','1','345'],
+        colCalcs: {
+          1: { why: 'Old x minus New x cancels to 0.', math: '(−16k−370)/9 + ((16k+370)/9)(1)', res: '0' },
+          2: { why: 'Old y (0) plus (16k+370)/9 times New y (0).', math: '0 + 0', res: '0' },
+          3: { why: 'Old S₁ (0) plus (16k+370)/9 times New S₁ (0).', math: '0 + 0', res: '0' },
+          4: { why: 'Old S₂ plus new term.', math: '(−k−40)/9 + ((16k+370)/9)(1/16)', res: '−15/8' },
+          5: { why: 'Old A₁ plus new term.', math: '(10k+40)/9 + ((16k+370)/9)(−1/16)', res: '(8k+15)/8' },
+          6: { why: 'Old A₂ plus new term.', math: '0 + ((16k+370)/9)(9/16)', res: '(8k+185)/8' },
+          8: { why: 'Old Qty plus new term.', math: '(−8k+160) + ((16k+370)/9)(9/2)', res: '345' }
+        }
       }
     ]
   };
@@ -365,49 +489,84 @@ export default function SectionPivot({ onComplete }) {
       {
         label: 'Goal',
         title: '🎯 The Goal of Pivot #3',
-        why: 'Column S₂ is entering the Basis replacing S₁ at Row 1. We must turn the S₂ column coefficients from [1/4, −1/8, 1/16, −15/8] into [1, 0, 0, 0].',
-        how: 'We do this in 4 row operations: first multiply Row 1 (S₁) by 4 to turn the pivot element (1/4) into 1. Then, subtract/add multiples of this new S₂ pivot row from y, x, and the Objective row to turn all their other S₂ coefficients into 0.',
+        why: 'Column S₂ is entering the Basis replacing S₁. We must turn the S₂ column from [1/4, −1/8, 1/16, −15/8] into [1, 0, 0, 0].',
+        how: 'To do this: Multiply Row 1 by 4 to turn the pivot element into a 1. Then, clear out S₂ in y, x, and Objective rows using row operations.',
         updatedRowIndex: null
       },
       {
         label: 'Make Pivot = 1',
         title: '1️⃣ Make New Pivot Row (S₂ replaces S₁)',
-        why: 'The pivot element at Row 1, Column S₂ is 1/4. To turn this pivot element into our target 1, we multiply the entire row by its reciprocal, which is 4.',
-        how: 'Multiply every value in Row 1 by 4. The basis variable changes from S₁ to S₂.',
+        why: 'The pivot element is 1/4. To turn it into 1, we multiply Row 1 by 4.',
+        how: 'Multiply every value in Row 1 by 4. The Basis changes from S₁ to S₂.',
         formula: 'New Row 1 = Old Row 1 × 4',
         updatedRowIndex: 0,
-        newRowValues: ['S₂','0','0','4','1','−1','−3','0','24']
+        newRowValues: ['S₂','0','0','4','1','−1','−3','0','24'],
+        colCalcs: {
+          1: { why: 'Old x (0) multiplied by 4.', math: '0 × 4', res: '0' },
+          2: { why: 'Old y (0) multiplied by 4.', math: '0 × 4', res: '0' },
+          3: { why: 'Old S₁ (1) multiplied by 4.', math: '1 × 4', res: '4' },
+          4: { why: 'Old S₂ (1/4) multiplied by 4.', math: '1/4 × 4', res: '1' },
+          5: { why: 'Old A₁ (−1/4) multiplied by 4.', math: '−1/4 × 4', res: '−1' },
+          6: { why: 'Old A₂ (−3/4) multiplied by 4.', math: '−3/4 × 4', res: '−3' },
+          8: { why: 'Old Qty (6) multiplied by 4.', math: '6 × 4', res: '24' }
+        }
       },
       {
         label: 'Zero-out Row y',
         title: '2️⃣ Zero-out y Row (Row 2)',
-        why: 'Old Row 2 (y) currently has a coefficient of −1/8 in the S₂ column. To turn it into 0, we must add exactly 1/8 times our new pivot row (which has a 1 in the S₂ position).',
-        how: 'We look at the S₂ entry in y, which is −1/8. To cancel it out using the new pivot row\'s 1, our multiplier must be +1/8 (since −1/8 + 1/8 × 1 = 0). We add 1/8 times the new S₂ Row to Old y.',
+        why: 'Old Row 2 (y) has −1/8 in the S₂ column. We must turn it into 0.',
+        how: 'Since it is negative, we ADD 1/8 times our new pivot row: −1/8 + 1/8 × 1 = 0.',
         formula: 'New y Row = Old y Row + (1/8) × (New S₂ Row)',
         updatedRowIndex: 1,
-        newRowValues: ['y','0','1','1/2','0','0','−1/2','0','6']
+        newRowValues: ['y','0','1','1/2','0','0','−1/2','0','6'],
+        colCalcs: {
+          1: { why: 'Old x (0) plus 1/8 times New x (0).', math: '0 + (1/8)(0)', res: '0' },
+          2: { why: 'Old y (1) plus 1/8 times New y (0).', math: '1 + (1/8)(0)', res: '1' },
+          3: { why: 'Old S₁ (0) plus 1/8 times New S₁ (4).', math: '0 + (1/8)(4)', res: '1/2' },
+          4: { why: 'Old S₂ (−1/8) plus 1/8 times New S₂ (1) cancels.', math: '−1/8 + (1/8)(1)', res: '0' },
+          5: { why: 'Old A₁ (1/8) plus 1/8 times New A₁ (−1).', math: '1/8 + (1/8)(−1)', res: '0' },
+          6: { why: 'Old A₂ (−1/8) plus 1/8 times New A₂ (−3).', math: '−1/8 + (1/8)(−3)', res: '−1/2' },
+          8: { why: 'Old Qty (3) plus 1/8 times New Qty (24).', math: '3 + (1/8)(24)', res: '6' }
+        }
       },
       {
         label: 'Zero-out Row x',
         title: '3️⃣ Zero-out x Row (Row 3)',
-        why: 'Old Row 3 (x) currently has a coefficient of 1/16 in the S₂ column. To turn it into 0, we must subtract exactly 1/16 times our new pivot row (which has a 1 in the S₂ position).',
-        how: 'We look at the S₂ entry in x, which is 1/16. To cancel it out using the new pivot row\'s 1, our multiplier must be 1/16 (since 1/16 − 1/16 × 1 = 0). We subtract 1/16 times the new S₂ Row from Old x.',
+        why: 'Old Row 3 (x) has 1/16 in the S₂ column. We must turn it into 0.',
+        how: 'Subtract 1/16 times our new pivot row from old Row 3: 1/16 − 1/16 × 1 = 0.',
         formula: 'New x Row = Old x Row − (1/16) × (New S₂ Row)',
         updatedRowIndex: 2,
-        newRowValues: ['x','1','0','−1/4','0','0','3/4','0','3']
+        newRowValues: ['x','1','0','−1/4','0','0','3/4','0','3'],
+        colCalcs: {
+          1: { why: 'Old x (1) minus 1/16 times New x (0).', math: '1 − (1/16)(0)', res: '1' },
+          2: { why: 'Old y (0) minus 1/16 times New y (0).', math: '0 − (1/16)(0)', res: '0' },
+          3: { why: 'Old S₁ (0) minus 1/16 times New S₁ (4).', math: '0 − (1/16)(4)', res: '−1/4' },
+          4: { why: 'Old S₂ (1/16) minus 1/16 times New S₂ (1) cancels.', math: '1/16 − (1/16)(1)', res: '0' },
+          5: { why: 'Old A₁ (−1/16) minus 1/16 times New A₁ (−1).', math: '−1/16 − (1/16)(−1)', res: '0' },
+          6: { why: 'Old A₂ (9/16) minus 1/16 times New A₂ (−3).', math: '9/16 − (1/16)(−3)', res: '3/4' },
+          8: { why: 'Old Qty (9/2) minus 1/16 times New Qty (24).', math: '9/2 − (1/16)(24)', res: '3' }
+        }
       },
       {
         label: 'Zero-out Obj',
         title: '4️⃣ Zero-out Objective Row',
-        why: 'The bottom objective row currently has a coefficient of −15/8 in the S₂ column. To cancel this negative coefficient and turn it into 0, we must add exactly 15/8 times our new pivot row.',
-        how: 'We look at the S₂ entry in the bottom row, which is −15/8. To cancel it out using the new pivot row\'s 1, we must add the exact opposite value, which is 15/8 (since −15/8 + 15/8 × 1 = 0). We add 15/8 times the new S₂ Row to the bottom row.',
+        why: 'The bottom row has −15/8 in the S₂ column. We must turn it into 0.',
+        how: 'Add 15/8 times our new pivot row to the objective row.',
         formula: 'New Obj = Old Obj + (15/8) × (New S₂ Row)',
         updatedRowIndex: 3,
-        newRowValues: ['','0','0','15/2','0','k','(2k+35)/2','1','390']
+        newRowValues: ['','0','0','15/2','0','k','(2k+35)/2','1','390'],
+        colCalcs: {
+          1: { why: 'Old x (0) plus 15/8 times New x (0).', math: '0 + 0', res: '0' },
+          2: { why: 'Old y (0) plus 15/8 times New y (0).', math: '0 + 0', res: '0' },
+          3: { why: 'Old S₁ (0) plus 15/8 times New S₁ (4).', math: '0 + (15/8)(4)', res: '15/2' },
+          4: { why: 'Old S₂ (−15/8) plus 15/8 times New S₂ (1) cancels.', math: '−15/8 + (15/8)(1)', res: '0' },
+          5: { why: 'Old A₁ ((8k+15)/8) plus 15/8 times New A₁ (−1).', math: '(8k+15)/8 + (15/8)(−1)', res: 'k' },
+          6: { why: 'Old A₂ ((8k+185)/8) plus 15/8 times New A₂ (−3).', math: '(8k+185)/8 + (15/8)(−3)', res: '(2k+35)/2' },
+          8: { why: 'Old Qty (345) plus 15/8 times New Qty (24).', math: '345 + (15/8)(24)', res: '390' }
+        }
       }
     ]
   };
-
 
   return (
     <Section badge="Steps 4–6 of 6" title="Pivoting & Iteration"
