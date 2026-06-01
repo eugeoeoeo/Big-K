@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Section, StepCard, M, TipCard, Quiz, ContinueBtn, LockedContinueBtn } from '../components';
+import { Section, StepCard, M, TipCard, Quiz, ContinueBtn, LockedContinueBtn, Tableau } from '../components';
+
 
 // Premium Visual Pivot Teacher Component
 function SimplexPivotTeacher({ config }) {
