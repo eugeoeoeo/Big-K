@@ -387,11 +387,11 @@ body::before {
   width: 100%;
   border-collapse: collapse;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
 }
 
 .tableau th {
-  padding: 10px 14px;
+  padding: 8px 6px;
   font-weight: 600;
   color: var(--accent-blue);
   background: rgba(59,130,246,0.06);
@@ -401,13 +401,14 @@ body::before {
 }
 
 .tableau td {
-  padding: 10px 14px;
+  padding: 8px 6px;
   text-align: center;
   border-bottom: 1px solid var(--border-glass);
   color: var(--text-secondary);
   white-space: nowrap;
   transition: var(--transition-fast);
 }
+
 
 .tableau .basis-cell {
   font-weight: 600;
